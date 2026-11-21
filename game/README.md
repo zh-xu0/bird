@@ -1,0 +1,99 @@
+# Bird CAPTCHA Game
+
+A reCAPTCHA-style game. Each round randomly asks for one of five birds —
+bald eagle, bee-eater, bustard, European gallinule, or sparrow — and you click
+every tile containing that bird.
+
+You get **3 Verify attempts per grid**. A wrong answer keeps the same grid so
+you can adjust; after the third wrong answer, a new grid is generated. A small
+example photo of the requested bird is shown in the blue header. The **Hint**
+button runs the trained SVM on every tile and highlights the ones it predicts
+as the requested bird in green.
+
+## Run
+
+From the repository root, create the environment once:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+sudo pacman -S tk        # Arch/CachyOS: Tkinter system package
+```
+
+Then run:
+
+```bash
+./game/run_game.sh
+```
+
+or:
+
+```bash
+cd game
+./run_game.sh
+```
+
+`run_game.sh` uses `.venv/bin/python` from the repository root if it exists.
+If you prefer to activate the environment yourself, `python CaptchSparrowApp.py`
+also works after `source .venv/bin/activate`.
+
+## Dataset options
+
+The repository includes a small **demo dataset** in `demo_dataset/test/` with
+10 test images per species, so the game runs from a fresh clone. It is separate
+from the model's training data.
+
+To use the full dataset zip (excluded from the repository because it is about
+195 MB), place `birds_dataset.zip` in this `game/` folder and run:
+
+```bash
+./run_game.sh --dataset birds_dataset.zip
+```
+
+Other options:
+
+```bash
+# Use the training split instead (the model has seen these images)
+./run_game.sh --dataset birds_dataset.zip --split train
+
+# Use an extracted dataset folder
+./run_game.sh --dataset ../dataset/test
+```
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `CaptchaSparrow.py` | Builds the grid, chooses the target bird and returns its true positions |
+| `CaptchSparrowApp.py` | Tkinter UI, tile selection, three Verify attempts and the Hint button |
+| `ModelSolver.py` | Loads `../results/models/best_model.joblib` and predicts each tile for the requested bird |
+| `demo_dataset/test/` | Small demo dataset (10 images per species) |
+| `bird_samples/` | Example photo of each bird shown in the blue header |
+| `captcha_grid.png` | Example generated grid |
+
+## Model details
+
+- Model: `../results/models/best_model.joblib` (StandardScaler + RBF SVM)
+- Features: the 311 features from `../classification_model.py`
+  (colour statistics, global + 2×2 HSV histograms, Lab statistics, Hu moments)
+- The solver reads each tile's **original** image from the zip/folder, not the
+  downscaled grid tile, so small grids and the 30×30 absurd mode use the same
+  image quality.
+
+The model has about 73% 5-fold cross-validation accuracy. Accuracy varies by
+species: sparrow recall is roughly 47%, while most other classes are stronger.
+So **Hint is best-effort, not a guaranteed answer**. If it misses every
+target, the UI says so. A dedicated binary model per bird or a pretrained CNN
+would improve the hint, but this version uses the existing 5-class SVM.
+
+`birds_dataset.zip` is about 195 MB, so it is intentionally not committed.
+Use the included demo dataset by default, or keep the full zip outside Git.
+
+## Regenerate the model
+
+From the repository root, with the full training dataset in `dataset/train/`:
+
+```bash
+python classification_model.py
+```

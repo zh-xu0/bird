@@ -1,0 +1,10 @@
+{
+  "model": "SVM (RBF)",
+  "key": "svm_rbf",
+  "best_params": "{\"clf__C\": 10, \"clf__gamma\": \"scale\"}",
+  "cv_accuracy_mean": 0.7331062670299728,
+  "cv_accuracy_std": 0.015696573093451537,
+  "oof_accuracy": 0.7331062670299727,
+  "oof_macro_f1": 0.7049797087726279,
+  "fit_seconds": 179.82731986045837
+}
