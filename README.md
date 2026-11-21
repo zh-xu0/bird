@@ -41,7 +41,6 @@ classification report, and figures are in [`results/`](results/).
 
 ```text
 BIRD/
-├── game_launch.py                  # unified launcher (Linux/macOS/Windows)
 ├── classification_model.py    # CNN embeddings, SVM training, CV, prediction
 ├── requirements.txt
 ├── README.md
@@ -59,8 +58,8 @@ BIRD/
 │   ├── CaptchaSparrow.py      # captcha grid generator
 │   ├── CaptchSparrowApp.py    # Tkinter UI, 3 attempts, Solve button
 │   ├── ModelSolver.py         # EfficientNet-B0 + SVM inference for Solve
-│   ├── run_game.sh            # optional convenience wrapper -> game_launch.py
-│   ├── run_game.bat           # optional convenience wrapper -> game_launch.py
+│   ├── run_game.sh            # launcher for Linux/macOS
+│   ├── run_game.bat           # launcher for Windows
 │   ├── demo_dataset/test/     # 10 demo images per species
 │   ├── bird_samples/          # header reference photo per species
 │   └── README.md
@@ -106,8 +105,8 @@ For the full game, place `birds_dataset.zip` in `game/` and pass it with
 
 ## Setup
 
-Tested with Python 3.14 on Linux; the unified launcher and setup also cover
-Windows and macOS. The pinned PyTorch wheels support Python 3.11–3.15.
+Tested with Python 3.14 on Linux; the launchers and setup also cover Windows
+and macOS. The pinned PyTorch wheels support Python 3.11–3.15.
 
 ### Option A — virtual environment (recommended, default)
 
@@ -115,7 +114,7 @@ Linux/macOS:
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate          # optional: game_launch.py finds .venv automatically
+source .venv/bin/activate          # optional: the launchers find .venv automatically
 pip install -r requirements.txt
 
 # Tkinter is a system package, not a pip package.
@@ -129,7 +128,7 @@ Windows (PowerShell or Command Prompt):
 
 ```bat
 py -3 -m venv .venv
-.venv\Scripts\activate             # optional: game_launch.py finds .venv automatically
+.venv\Scripts\activate             # optional: the launchers find .venv automatically
 pip install -r requirements.txt
 ```
 
@@ -138,23 +137,28 @@ platform instead of copying one across.
 
 ### Option B — no virtual environment
 
-If the Python you run already has the packages (system Python, conda, or
-another environment), install into that interpreter and launch with
-`--no-venv`:
+If the Python you use already has the packages (system Python, conda, or
+another environment), install into that interpreter and run the launcher. The
+scripts prefer `.venv` when it exists; on Linux/macOS you can bypass it with
+`BIRD_PYTHON`.
 
 Linux/macOS:
 
 ```bash
 python3 -m pip install -r requirements.txt
-python3 game_launch.py --no-venv
+./game/run_game.sh                        # uses .venv if present, else python3
+BIRD_PYTHON=python3 ./game/run_game.sh    # force the system interpreter
 ```
 
 Windows:
 
 ```bat
 py -3 -m pip install -r requirements.txt
-py game_launch.py --no-venv
+game\run_game.bat
 ```
+
+The Windows launcher prefers a portable `Python\python.exe` next to the
+project, then `.venv`, then `python` from PATH.
 
 Tkinter must still be available: it is bundled with the python.org Windows
 installer (enable **tcl/tk and IDLE**) and with python.org macOS installers;
@@ -201,31 +205,43 @@ header. The **Solve** button runs the EfficientNet-B0 + SVM pipeline on the
 tiles and highlights predicted tiles in green. Inference runs on a background
 thread so the window stays responsive, including on 30×30 grids.
 
-Run from the repository root with the unified launcher (all platforms):
+Run from the repository root.
+
+Linux/macOS:
 
 ```bash
-python game_launch.py          # Linux/macOS
-py game_launch.py              # Windows
+./game/run_game.sh
 ```
 
-`game_launch.py` works with whichever Python runs it. If a project `.venv` exists,
-it automatically switches to that interpreter; otherwise it uses the current
-one and tells you if packages are missing. Add `--no-venv` to ignore `.venv`
-and use the current interpreter. Game options pass straight through:
+Windows:
+
+```bat
+game\run_game.bat
+```
+
+You can double-click `run_game.bat` in Explorer. On Linux/macOS,
+`run_game.sh` is executable; in a file manager choose **Run** or **Run in
+Terminal** (some file managers default to opening text files in an editor).
+
+Both scripts run `game/CaptchSparrowApp.py` directly and choose an interpreter
+in this order:
+
+1. `BIRD_PYTHON` / `PYTHON` environment override (Linux/macOS)
+2. a portable Python next to the project (`../Python` or `../../Python`)
+3. the repository `.venv` (or `game/.venv`)
+4. system `python3` / `python` (Windows: `python`)
+
+The scripts `cd` into `game/`, so `--dataset` paths are relative to it:
 
 ```bash
-python game_launch.py --dataset game/birds_dataset.zip --split test
-python game_launch.py --no-venv
+./game/run_game.sh --dataset birds_dataset.zip
+./game/run_game.sh --dataset ../dataset/test
 ```
 
-Set `BIRD_PYTHON=/path/to/python` to choose a specific interpreter.
+On Windows, use `game\run_game.bat` with the same arguments.
 
-The old `./game/run_game.sh` and `game\run_game.bat` still work, but they are
-now thin optional wrappers around `game_launch.py`.
-
-The launcher uses the included demo dataset by default, so the game runs from
-a fresh clone. See [game/README.md](game/README.md) for the full-dataset
-options.
+The game uses the included demo dataset by default, so it runs from a fresh
+clone. See [game/README.md](game/README.md) for the full-dataset options.
 
 ## Method summary
 

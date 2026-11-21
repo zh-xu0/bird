@@ -15,8 +15,9 @@ responsive.
 ## Run
 
 The game runs on Linux, macOS and Windows. Install the dependencies once, then
-use the unified `game_launch.py` from the repository root. The launcher works with
-either a virtual environment or a plain Python installation.
+run the launcher for your platform: `run_game.sh` on Linux/macOS or
+`run_game.bat` on Windows. Both work with a virtual environment or a plain
+Python installation.
 
 ### Option A — virtual environment (recommended, default)
 
@@ -43,7 +44,7 @@ Tkinter is bundled with the official python.org Windows installer — make sure
 **tcl/tk and IDLE** is checked. Virtual environments are not portable between
 operating systems, so create a fresh `.venv` on each machine.
 
-Activation is optional afterwards: `game_launch.py` finds `.venv` automatically.
+Activation is optional afterwards: the launchers find `.venv` automatically.
 
 ### Option B — no virtual environment
 
@@ -62,35 +63,42 @@ Windows:
 py -3 -m pip install -r requirements.txt
 ```
 
-Then launch with `--no-venv` (see below). If pip reports a permissions error,
+Then run the launcher. If pip reports a permissions error,
 add `--user`. On distributions that mark the system Python as externally
 managed (PEP 668, e.g. Arch/CachyOS), pip may refuse — use Option A or your
 distro's packages.
 
 ### Launch
 
-From the repository root:
+Linux / macOS:
 
 ```bash
-python game_launch.py          # Linux / macOS
-py game_launch.py              # Windows
+./game/run_game.sh
 ```
 
-`game_launch.py` uses the project `.venv` when it exists; otherwise it uses the
-interpreter you invoked. Add `--no-venv` to ignore `.venv` and use the current
-interpreter:
+Windows:
 
-```bash
-python game_launch.py --no-venv
+```bat
+game\run_game.bat
 ```
 
-Set `BIRD_PYTHON=/path/to/python` to choose a specific interpreter.
+`run_game.bat` can be double-clicked in Explorer. On Linux/macOS,
+`run_game.sh` is executable; in a file manager choose **Run** or **Run in
+Terminal** if it opens the script in an editor instead.
 
-The old launchers still work as thin convenience wrappers around `game_launch.py`:
+Both scripts start `CaptchSparrowApp.py` directly and choose an interpreter in
+this order:
+
+1. `BIRD_PYTHON` / `PYTHON` environment override (Linux/macOS)
+2. a portable Python next to the project (`../Python` or `../../Python`)
+3. the repository `.venv` (or `game/.venv`)
+4. system `python3` / `python` (Windows: `python`)
+
+The scripts `cd` into `game/`, so `--dataset` paths are relative to this
+folder. To force a particular interpreter on Linux/macOS:
 
 ```bash
-./game/run_game.sh        # Linux / macOS
-game\run_game.bat         # Windows (also double-clickable)
+BIRD_PYTHON=python3 ./game/run_game.sh
 ```
 
 `requirements.txt` includes PyTorch and torchvision. On the first Solve (or the
@@ -105,25 +113,26 @@ The repository includes a small **demo dataset** in `demo_dataset/test/` with
 from the model's training data.
 
 To use the full dataset zip (excluded from the repository because it is about
-195 MB), place `birds_dataset.zip` in this `game/` folder and run from the
-repository root:
+195 MB), place `birds_dataset.zip` in this `game/` folder and run:
 
 ```bash
-python game_launch.py --dataset game/birds_dataset.zip
+./game/run_game.sh --dataset birds_dataset.zip
 ```
 
-On Windows, use `py game_launch.py` instead. Other options (the same arguments work
-with the wrapper scripts too):
+Windows:
+
+```bat
+game\run_game.bat --dataset birds_dataset.zip
+```
+
+Other options (the same arguments work with either launcher):
 
 ```bash
 # Use the training split instead (the model has seen these images)
-python game_launch.py --dataset game/birds_dataset.zip --split train
+./game/run_game.sh --dataset birds_dataset.zip --split train
 
-# Use an extracted dataset folder
-python game_launch.py --dataset dataset/test
-
-# Ignore the project .venv and use the Python running game_launch.py
-python game_launch.py --no-venv
+# Use an extracted dataset folder (paths are relative to game/)
+./game/run_game.sh --dataset ../dataset/test
 ```
 
 ## Files
@@ -133,8 +142,7 @@ python game_launch.py --no-venv
 | `CaptchaSparrow.py` | Builds the grid, chooses the target bird and returns its true positions |
 | `CaptchSparrowApp.py` | Tkinter UI, tile selection, three Verify attempts and the Solve button |
 | `ModelSolver.py` | Loads the EfficientNet-B0 backbone and `../results/models/best_model.joblib`, embeds each tile and predicts the requested bird |
-| `../game_launch.py` | Unified launcher for Linux, macOS and Windows; auto-detects `.venv` or uses the current Python |
-| `run_game.sh` / `run_game.bat` | Optional convenience wrappers around `game_launch.py` |
+| `run_game.sh` / `run_game.bat` | Launchers for Linux/macOS and Windows; select an interpreter and start the app |
 | `demo_dataset/test/` | Small demo dataset (10 images per species) |
 | `bird_samples/` | Example photo of each bird shown in the blue header |
 | `captcha_grid.png` | Example generated grid |
