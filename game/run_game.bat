@@ -1,18 +1,33 @@
 @echo off
-rem Optional convenience wrapper. The unified launcher is ..\game_launch.py, which
-rem works on Windows, Linux and macOS and selects the project .venv (or the
-rem current Python) automatically.
+rem Launch the Bird CAPTCHA game on Windows (cmd.exe / double-click).
 setlocal
 
-set "LAUNCHER=%~dp0..\game_launch.py"
+set "GAME_DIR=%~dp0"
+set "PROJECT_DIR=%GAME_DIR%.."
+set "PYTHON="
 
-where py >nul 2>nul
-if %ERRORLEVEL%==0 (
-    py -3 "%LAUNCHER%" %*
-) else (
-    python "%LAUNCHER%" %*
+rem 1. Prefer standalone portable Python in PortableVS\Python (works on any PC)
+for /f "delims=" %%P in ('dir /b /s "%PROJECT_DIR%\..\..\Python\python.exe" 2^>nul') do (
+    set "PYTHON=%%P"
+    goto :run_game
 )
-set "GAME_EXIT=%ERRORLEVEL%"
 
+rem 2. Fall back to repo-local .venv or system python
+if exist "%PROJECT_DIR%\.venv\Scripts\python.exe" (
+    set "PYTHON=%PROJECT_DIR%\.venv\Scripts\python.exe"
+) else if exist "%GAME_DIR%.venv\Scripts\python.exe" (
+    set "PYTHON=%GAME_DIR%.venv\Scripts\python.exe"
+) else (
+    set "PYTHON=python"
+)
+
+:run_game
+pushd "%GAME_DIR%"
+"%PYTHON%" CaptchSparrowApp.py %*
+set "GAME_EXIT=%ERRORLEVEL%"
+popd
+
+rem Keep the window open on failure when launched by double-click.
 if not "%GAME_EXIT%"=="0" pause
+
 exit /b %GAME_EXIT%
