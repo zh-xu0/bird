@@ -1,25 +1,18 @@
 @echo off
-rem Launch the Bird CAPTCHA game on Windows (cmd.exe / double-click).
-rem Mirrors run_game.sh: prefer the virtual environment at the repo root.
+rem Optional convenience wrapper. The unified launcher is ..\launch.py, which
+rem works on Windows, Linux and macOS and selects the project .venv (or the
+rem current Python) automatically.
 setlocal
 
-set "GAME_DIR=%~dp0"
-set "PROJECT_DIR=%GAME_DIR%.."
+set "LAUNCHER=%~dp0..\launch.py"
 
-if exist "%PROJECT_DIR%\.venv\Scripts\python.exe" (
-    set "PYTHON=%PROJECT_DIR%\.venv\Scripts\python.exe"
-) else if exist "%GAME_DIR%.venv\Scripts\python.exe" (
-    set "PYTHON=%GAME_DIR%.venv\Scripts\python.exe"
+where py >nul 2>nul
+if %ERRORLEVEL%==0 (
+    py -3 "%LAUNCHER%" %*
 ) else (
-    set "PYTHON=python"
+    python "%LAUNCHER%" %*
 )
-
-pushd "%GAME_DIR%"
-"%PYTHON%" CaptchSparrowApp.py %*
 set "GAME_EXIT=%ERRORLEVEL%"
-popd
 
-rem Keep the window open on failure when launched by double-click.
 if not "%GAME_EXIT%"=="0" pause
-
 exit /b %GAME_EXIT%
