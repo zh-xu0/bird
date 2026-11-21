@@ -1,4 +1,4 @@
-# BIRD — Bird Image Recognition Detector
+# BIRD (Bird Image Recognition Detector)
 
 A five-class bird image classifier and a reCAPTCHA-style game, built for the
 EGCI486 Image Processing final project.
