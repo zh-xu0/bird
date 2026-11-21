@@ -37,7 +37,6 @@ BIRD/
 ├── requirements.txt
 ├── README.md
 ├── LICENSE
-├── PUSH.md                    # exact commands for publishing to GitHub
 ├── results/
 │   ├── best_model.json
 │   ├── cv_results.csv
