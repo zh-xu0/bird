@@ -1,4 +1,4 @@
-rem This is for no venv python machines
+rem This is for no venv python machines (Jonathan)
 @echo off
 rem Launch the Bird CAPTCHA game on Windows (cmd.exe / double-click).
 setlocal
