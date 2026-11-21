@@ -1,9 +1,11 @@
-# Tested with Python 3.14.10 on Linux.
+# Tested with Python 3.14.10 on Linux. The same pinned versions have Windows
+# wheels; the game runs on CPU there too (an NVIDIA GPU is optional).
 numpy==2.5.4
-opencv-python==5.0.0.93
 scikit-learn==1.9.1
 pandas==3.1.0
 matplotlib==3.11.2
 Pillow==13.0.0
 tqdm==4.70.1
 joblib==1.6.0
+torch==2.15.0
+torchvision==0.29.2

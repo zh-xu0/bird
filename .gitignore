@@ -14,9 +14,8 @@ dataset/
 *.zip
 
 # Generated training artifacts
-results/features_train.csv
-results/models/svm_rbf.joblib
-results/models/knn.joblib
+results/embeddings_*.npy
+results/embeddings_*.meta.json
 
 # Tool caches
 .pytest_cache/

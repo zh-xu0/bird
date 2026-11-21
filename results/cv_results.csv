@@ -1,3 +1,4 @@
-model,key,best_params,cv_accuracy_mean,cv_accuracy_std,oof_accuracy,oof_macro_f1,fit_seconds
-SVM (RBF),svm_rbf,"{""clf__C"": 10, ""clf__gamma"": ""scale""}",0.7331062670299728,0.015696573093451537,0.7331062670299727,0.7049797087726279,179.82731986045837
-K-NN,knn,"{""clf__n_neighbors"": 3, ""clf__weights"": ""distance""}",0.6316076294277929,0.011004261856299002,0.6316076294277929,0.6021092893021125,2.175872325897217
+model,protocol,cv_accuracy_mean,cv_accuracy_std,oof_accuracy,oof_macro_f1,fit_seconds
+EfficientNet-B0 frozen embeddings + RBF SVM,Stratified 5-fold CV,0.9889645776566758,0.004073546699652843,0.9889645776566758,0.9876028920932974,30.60155081799894
+EfficientNet-B0 frozen embeddings + RBF SVM,Grouped 5-fold CV (primary),0.9824244118367901,0.001329926906577488,0.982425068119891,0.9801330307889013,31.6569098970067
+EfficientNet-B0 frozen embeddings + RBF SVM,Held-out test split (final fit),,,0.9967741935483871,0.9954882078158824,7.077747318995534

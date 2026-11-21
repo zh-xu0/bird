@@ -1,37 +1,47 @@
-SVM (RBF)
-Best parameters: {'clf__C': 10, 'clf__gamma': 'scale'}
-5-fold CV accuracy: 73.31% +- 1.57%
-Out-of-fold accuracy: 73.31%
-Macro F1: 0.7050
+Stratified 5-fold CV (historical protocol)
+Accuracy: 98.90%
+Macro F1: 0.9876
 
                     precision    recall  f1-score   support
 
-        bald_eagle     0.7472    0.8218    0.7828      1813
-         bee_eater     0.7048    0.6578    0.6805      1572
-           bustard     0.7458    0.7927    0.7685      1606
-european_gallinule     0.7844    0.7679    0.7760      1620
-           sparrow     0.5802    0.4664    0.5171       729
+        bald_eagle     0.9799    0.9972    0.9885      1813
+         bee_eater     0.9955    0.9841    0.9898      1572
+           bustard     0.9944    0.9882    0.9913      1606
+european_gallinule     0.9981    0.9864    0.9922      1620
+           sparrow     0.9664    0.9863    0.9762       729
 
-          accuracy                         0.7331      7340
-         macro avg     0.7125    0.7013    0.7050      7340
-      weighted avg     0.7294    0.7331    0.7299      7340
+          accuracy                         0.9890      7340
+         macro avg     0.9869    0.9884    0.9876      7340
+      weighted avg     0.9891    0.9890    0.9890      7340
 
-
-K-NN
-Best parameters: {'clf__n_neighbors': 3, 'clf__weights': 'distance'}
-5-fold CV accuracy: 63.16% +- 1.10%
-Out-of-fold accuracy: 63.16%
-Macro F1: 0.6021
+Grouped 5-fold CV (primary, no _aug leakage)
+Accuracy: 98.24%
+Macro F1: 0.9801
 
                     precision    recall  f1-score   support
 
-        bald_eagle     0.7220    0.6834    0.7022      1813
-         bee_eater     0.6244    0.4599    0.5297      1572
-           bustard     0.6541    0.7335    0.6915      1606
-european_gallinule     0.5685    0.7556    0.6488      1620
-           sparrow     0.5312    0.3731    0.4384       729
+        bald_eagle     0.9704    0.9950    0.9826      1813
+         bee_eater     0.9910    0.9784    0.9846      1572
+           bustard     0.9906    0.9838    0.9872      1606
+european_gallinule     0.9987    0.9722    0.9853      1620
+           sparrow     0.9432    0.9794    0.9610       729
 
-          accuracy                         0.6316      7340
-         macro avg     0.6200    0.6011    0.6021      7340
-      weighted avg     0.6334    0.6316    0.6249      7340
+          accuracy                         0.9824      7340
+         macro avg     0.9788    0.9818    0.9801      7340
+      weighted avg     0.9828    0.9824    0.9825      7340
 
+Held-out test split
+Accuracy: 99.68%
+Macro F1: 0.9955
+
+                    precision    recall  f1-score   support
+
+        bald_eagle     1.0000    1.0000    1.0000        72
+         bee_eater     1.0000    1.0000    1.0000        73
+           bustard     1.0000    1.0000    1.0000        66
+european_gallinule     1.0000    0.9848    0.9924        66
+           sparrow     0.9706    1.0000    0.9851        33
+
+          accuracy                         0.9968       310
+         macro avg     0.9941    0.9970    0.9955       310
+      weighted avg     0.9969    0.9968    0.9968       310

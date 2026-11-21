@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import queue
 import random
 import sys
+import threading
 from pathlib import Path
 
 try:
@@ -10,21 +12,21 @@ try:
     from tkinter import messagebox
 except ImportError as exc:
     if sys.platform == "win32":
-        hint = (
+        tk_help = (
             "Tkinter ships with the official python.org Windows installer; "
             "re-run the installer and enable 'tcl/tk and IDLE'."
         )
     elif sys.platform == "darwin":
-        hint = (
+        tk_help = (
             "Install Tk support, e.g. 'brew install python-tk', "
             "or use the python.org installer."
         )
     else:
-        hint = (
+        tk_help = (
             "On Arch/CachyOS install it with 'sudo pacman -S tk'; "
             "on Debian/Ubuntu use 'sudo apt install python3-tk'."
         )
-    raise SystemExit(f"Tkinter could not load. {hint}\n({exc})") from exc
+    raise SystemExit(f"Tkinter could not load. {tk_help}\n({exc})") from exc
 
 from PIL import Image, ImageOps, ImageTk
 
@@ -96,6 +98,9 @@ class BirdCaptchaApp:
         self.attempts_left = self.max_attempts
         self.target_bird = "sparrow"
         self.target_display = BIRD_NAMES[self.target_bird]
+        self._solve_queue: queue.Queue = queue.Queue()
+        self._solve_generation = 0
+        self._solving = False
 
         self._build_ui()
         self.load_new_grid(grid_size=None)
@@ -191,7 +196,7 @@ class BirdCaptchaApp:
         )
         self.status_label.pack(fill="x", pady=(2, 6))
 
-        # 4. Bottom Action Bar (Reset, Hint, Verify)
+        # 4. Bottom Action Bar (Reset, Solve, Verify)
         tk.Frame(outer, bg=self.BORDER, height=1).pack(fill="x", pady=(0, 8))
 
         footer = tk.Frame(outer, bg=self.BG)
@@ -214,7 +219,7 @@ class BirdCaptchaApp:
 
         self.solve_btn = tk.Button(
             footer,
-            text="Hint",
+            text="Solve",
             command=self._on_solve,
             bg="#F1F3F4",
             fg="#202124",
@@ -246,6 +251,8 @@ class BirdCaptchaApp:
         self.root.bind("<Return>", lambda _event: self._on_verify())
 
     def load_new_grid(self, grid_size: int | None = None) -> None:
+        # Invalidate any in-flight Solve result for the previous grid.
+        self._solve_generation += 1
         self.selected.clear()
         self.overlay_items.clear()
 
@@ -386,7 +393,7 @@ class BirdCaptchaApp:
             self.canvas.delete(item_id)
 
     def _on_verify(self) -> None:
-        if self.grid_result is None:
+        if self.grid_result is None or self._solving:
             return
 
         expected = set(self.grid_result.target_positions)
@@ -437,28 +444,62 @@ class BirdCaptchaApp:
         )
 
     def _on_solve(self) -> None:
-        if self.grid_result is None:
+        if self.grid_result is None or self._solving:
             return
 
-        n = self.grid_result.grid_size
+        self._solving = True
+        generation = self._solve_generation
+        grid_result = self.grid_result
+        target_bird = self.target_bird
+        n = grid_result.grid_size
+
+        self.solve_btn.config(state="disabled")
+        self.verify_btn.config(state="disabled")
+        self.reset_btn.config(state="disabled")
         self.status_label.config(
-            text=f"Running SVM on {n * n} tiles...", fg=self.TEXT_MUTED
+            text=f"Running EfficientNet-B0 + SVM on {n * n} tiles...",
+            fg=self.TEXT_MUTED,
         )
-        self.root.update_idletasks()
 
+        def worker() -> None:
+            try:
+                predicted = solve_with_model(grid_result, target_bird)
+            except Exception as exc:  # keep the game usable if the model fails
+                self._solve_queue.put((generation, "error", exc))
+            else:
+                self._solve_queue.put((generation, "ok", predicted))
+
+        threading.Thread(target=worker, name="bird-solve", daemon=True).start()
+        self.root.after(100, self._poll_solve_result)
+
+    def _poll_solve_result(self) -> None:
         try:
-            predicted = solve_with_model(self.grid_result, self.target_bird)
-        except Exception as exc:  # keep the game usable if the model fails
-            self.status_label.config(
-                text=f"Model error: {exc}", fg=self.ERROR_RED
-            )
-            messagebox.showerror("Model error", str(exc))
+            generation, status, payload = self._solve_queue.get_nowait()
+        except queue.Empty:
+            self.root.after(100, self._poll_solve_result)
             return
 
+        self._solving = False
+        self.solve_btn.config(state="normal")
+        self.verify_btn.config(state="normal")
+        self.reset_btn.config(state="normal")
+
+        # Ignore results for a grid that has since been replaced or reset.
+        if generation != self._solve_generation:
+            return
+
+        if status == "error":
+            self.status_label.config(
+                text=f"Model error: {payload}", fg=self.ERROR_RED
+            )
+            messagebox.showerror("Model error", str(payload))
+            return
+
+        predicted = payload
         if not predicted:
             self.status_label.config(
                 text=(
-                    f"The SVM did not predict any "
+                    f"The model did not predict any "
                     f"{self.target_display.lower()}s in this grid."
                 ),
                 fg=self.TEXT_MUTED,
@@ -471,7 +512,7 @@ class BirdCaptchaApp:
             self._select_tile(pos, outline=self.SUCCESS_GREEN)
         self.status_label.config(
             text=(
-                f"Hint: SVM highlighted {len(predicted)} tile(s) as "
+                f"Solve: model highlighted {len(predicted)} tile(s) as "
                 f"{self.target_display.lower()}. Press VERIFY to check."
             ),
             fg=self.SUCCESS_GREEN,
@@ -480,7 +521,7 @@ class BirdCaptchaApp:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Bird CAPTCHA game with an SVM hint."
+        description="Bird CAPTCHA game with an EfficientNet-B0 + SVM solver."
     )
     default_dataset = str(DEMO_DATASET) if DEMO_DATASET.is_dir() else None
     parser.add_argument(

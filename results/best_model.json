@@ -1,10 +1,19 @@
 {
-  "model": "SVM (RBF)",
-  "key": "svm_rbf",
-  "best_params": "{\"clf__C\": 10, \"clf__gamma\": \"scale\"}",
-  "cv_accuracy_mean": 0.7331062670299728,
-  "cv_accuracy_std": 0.015696573093451537,
-  "oof_accuracy": 0.7331062670299727,
-  "oof_macro_f1": 0.7049797087726279,
-  "fit_seconds": 179.82731986045837
+  "model": "EfficientNet-B0 (frozen, ImageNet-1K) + RBF SVM",
+  "backbone": "efficientnet_b0",
+  "weights": "EfficientNet_B0_Weights.IMAGENET1K_V1",
+  "cv_protocol": "StratifiedGroupKFold(5), grouped by source photo",
+  "cv_accuracy_mean": 0.9824244118367901,
+  "cv_accuracy_std": 0.001329926906577488,
+  "oof_accuracy": 0.982425068119891,
+  "oof_macro_f1": 0.9801330307889013,
+  "stratified_cv_accuracy_mean": 0.9889645776566758,
+  "stratified_cv_accuracy_std": 0.004073546699652843,
+  "test_accuracy": 0.9967741935483871,
+  "test_macro_f1": 0.9954882078158824,
+  "sparrow_recall_grouped_cv": 0.9794238683127572,
+  "train_images": 7340,
+  "test_images": 310,
+  "source_groups": 5645,
+  "trained_at": "2026-11-21T07:08:24+00:00"
 }

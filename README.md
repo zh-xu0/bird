@@ -8,47 +8,56 @@ EGCI486 Image Processing final project.
 
 The project has two parts:
 
-1. **Model training** — handcrafted OpenCV features plus scikit-learn SVMs,
-   evaluated with stratified 5-fold cross-validation.
-2. **Presentation game** — a bird CAPTCHA with a best-effort SVM Hint button.
+1. **Model training** — a frozen ImageNet-pretrained EfficientNet-B0 feature
+   extractor, with a scikit-learn RBF SVM trained on its 1,280-dimensional
+   embeddings, evaluated with grouped and stratified 5-fold cross-validation.
+2. **Presentation game** — a bird CAPTCHA with a model-backed Solve button.
 
 The five classes are bald eagle, bee-eater, bustard, European gallinule, and
 sparrow.
 
 ## Results
 
-| Model | 5-fold CV accuracy | Macro F1 |
-|---|---:|---:|
-| **SVM (RBF, balanced)** | **73.31% ± 1.57%** | **0.7050** |
-| K-NN | 63.16% ± 1.10% | 0.6021 |
+| Pipeline | Protocol | Accuracy | Macro F1 |
+|---|---|---:|---:|
+| **EfficientNet-B0 embeddings + RBF SVM** | **Grouped 5-fold CV (primary)** | **98.24% ± 0.13%** | **0.9801** |
+| EfficientNet-B0 embeddings + RBF SVM | Stratified 5-fold CV | 98.90% ± 0.41% | 0.9876 |
+| EfficientNet-B0 embeddings + RBF SVM | Held-out test (310 images) | 99.68% | 0.9955 |
+| Previous 311-feature SVM baseline | Grouped 5-fold CV | 64.05% ± 0.82% | 0.5927 |
 
-Best SVM settings: `C=10`, `gamma="scale"`.
+Grouped CV keeps every `_aug` copy of a source photo in the same fold, so it
+is the honest estimate; the old 73.31% stratified result was inflated by
+augmentation leakage. An end-to-end fine-tune of EfficientNet-B0 was also
+evaluated and matched the frozen pipeline (98.91% grouped validation, 99.68%
+test), so the project keeps the simpler frozen-embedding model.
 
 The selected model is saved at
-[`results/models/best_model.joblib`](results/models/best_model.joblib).
-Metrics, the classification report, and figures are in
-[`results/`](results/).
+[`results/models/best_model.joblib`](results/models/best_model.joblib), with its
+preprocessing contract in
+[`results/model_config.json`](results/model_config.json). Metrics, the
+classification report, and figures are in [`results/`](results/).
 
 ## Repository layout
 
 ```text
 BIRD/
-├── classification_model.py    # feature extraction, training, CV, prediction
+├── classification_model.py    # CNN embeddings, SVM training, CV, prediction
 ├── requirements.txt
 ├── README.md
+├── CREDITS.md                 # model/data/software attribution and licenses
 ├── LICENSE
 ├── results/
 │   ├── best_model.json
+│   ├── model_config.json      # backbone, preprocessing, classes
 │   ├── cv_results.csv
 │   ├── classification_report.txt
-│   ├── feature_columns.json
 │   ├── models/
 │   │   └── best_model.joblib
 │   └── figures/
 ├── game/
 │   ├── CaptchaSparrow.py      # captcha grid generator
-│   ├── CaptchSparrowApp.py    # Tkinter UI, 3 attempts, Hint button
-│   ├── ModelSolver.py         # SVM inference for the Hint button
+│   ├── CaptchSparrowApp.py    # Tkinter UI, 3 attempts, Solve button
+│   ├── ModelSolver.py         # EfficientNet-B0 + SVM inference for Solve
 │   ├── run_game.sh            # launcher for Linux/macOS
 │   ├── run_game.bat           # launcher for Windows
 │   ├── demo_dataset/test/     # 10 demo images per species
@@ -125,6 +134,10 @@ Tkinter is bundled with the official python.org Windows installer (enable
 **tcl/tk and IDLE**). Virtual environments are OS-specific, so create a fresh
 `.venv` on each platform instead of copying one across.
 
+`requirements.txt` now includes PyTorch and torchvision. The first training run
+or first Solve downloads the EfficientNet-B0 ImageNet weights with torchvision
+(about 20 MB). An NVIDIA GPU is optional; the model runs on CPU too.
+
 ## Train and evaluate
 
 From the repository root, with `dataset/train/` populated:
@@ -133,28 +146,31 @@ From the repository root, with `dataset/train/` populated:
 python classification_model.py
 ```
 
-This extracts 311 features per image, tunes the SVM and K-NN grids with
-stratified 5-fold cross-validation, writes the metrics/figures to `results/`,
-and saves `results/models/best_model.joblib` and
-`results/models/best_model.json`.
+This extracts 1,280-dimensional EfficientNet-B0 embeddings (cached in
+`results/embeddings_*.npy`, which Git ignores), runs stratified and grouped
+5-fold cross-validation, fits the SVM on the full training split, evaluates it
+once on the held-out test split, and writes the metrics and figures to
+`results/`. It saves `results/models/best_model.joblib` and
+`results/model_config.json`.
 
 Useful options:
 
 ```bash
-python classification_model.py --recompute-features   # rebuild the feature cache
-python classification_model.py --predict bird.jpg     # classify one image
-python classification_model.py --n-jobs 2             # quieter / fewer workers
+python classification_model.py --recompute-embeddings  # rebuild the embedding cache
+python classification_model.py --predict bird.jpg      # classify one image
+python classification_model.py --device cpu            # force CPU inference
+python classification_model.py --workers 2             # fewer loader workers
 ```
 
-The feature table `results/features_train.csv` is regenerated as needed and is
-ignored by Git.
+The embedding cache is regenerated as needed and is ignored by Git.
 
 ## Run the CAPTCHA game
 
 The game is the presentation/demo. It randomly asks for one of the five birds,
 gives three Verify attempts per grid, and shows a reference photo in the blue
-header. The **Hint** button runs the trained SVM and highlights predicted
-tiles in green.
+header. The **Solve** button runs the EfficientNet-B0 + SVM pipeline on the
+tiles and highlights predicted tiles in green. Inference runs on a background
+thread so the window stays responsive, including on 30×30 grids.
 
 ```bash
 ./game/run_game.sh
@@ -172,25 +188,32 @@ options.
 
 ## Method summary
 
-- **Features (311 per image):** RGB statistics, HSV statistics, global HSV
-  histograms, 2×2 spatial HSV histograms, Lab statistics, and seven Hu moments.
-- **Preprocessing:** `StandardScaler`.
-- **Models:** SVM (RBF, balanced class weights) and K-NN.
-- **Validation:** `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)`
-  on the training split only. The test split is never used for feature
-  selection, tuning, or model selection.
-- **Metric:** accuracy for grid search; macro F1 and per-class scores reported.
+- **Feature extractor:** EfficientNet-B0 pretrained on ImageNet-1K
+  (`torchvision`, `EfficientNet_B0_Weights.IMAGENET1K_V1`), frozen, classifier
+  head removed. Each image becomes a 1,280-dimensional embedding.
+- **Preprocessing:** resize to 224×224 RGB, ImageNet mean/std normalization.
+- **Classifier:** `StandardScaler` + RBF SVM (`C=10`, `gamma="scale"`,
+  class-balanced weights), trained on the embeddings.
+- **Validation:** grouped `StratifiedGroupKFold(n_splits=5)` by source photo is
+  the primary metric (no `_aug` leakage); stratified 5-fold is reported for
+  comparison. The test split is used only for the final one-shot evaluation.
+- **Fine-tuning:** end-to-end fine-tuning was evaluated and did not improve on
+  the frozen pipeline, so the simpler model is shipped.
 
 ## Limitations
 
-- The dataset includes `_aug` copies of some source photos. Plain stratified
-  K-fold can place an original and its augmented copy in different folds, so
-  the CV scores may be slightly optimistic. A grouped split by source image
-  would give a more conservative estimate.
-- The game's Hint is best-effort: overall CV accuracy is about 73%, and
-  sparrow recall is only about 47%. The UI says so when it finds no target.
-- The model uses CPU only. The full training run takes a few minutes with all
-  available cores; the GPU is not needed for this feature set.
+- The five species are visually distinct and the images are clean 256×256
+  crops, so accuracy is near the ceiling for this dataset. The 310-image test
+  split has only one misclassified image; treat differences below about 1%
+  between models as noise.
+- The earlier handcrafted-feature baseline reported 73.31% with stratified CV.
+  That figure was inflated by `_aug` copies crossing folds; its honest grouped
+  score is 64.05%. The old pipeline and metrics are preserved in a local backup
+  outside the repository (not committed).
+- The frozen backbone is ImageNet-pretrained, not bird-specific. It works very
+  well for these five classes but may need adaptation for fine-grained species.
+- On CPU, a 30×30 Solve takes roughly 15–20 seconds; on a CUDA GPU it takes a
+  couple of seconds. The UI stays responsive while it runs.
 
 ## License
 
@@ -201,5 +224,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version. See [LICENSE](LICENSE) for the full text.
 
-Dataset images are sourced from images.cv and remain subject to their
-respective terms.
+The pretrained EfficientNet-B0 weights, PyTorch/torchvision, scikit-learn, and
+the images.cv dataset have their own terms. See
+[CREDITS.md](CREDITS.md) for citations, licenses, and attribution. Dataset
+images are sourced from images.cv and remain subject to their respective terms;
+they are not covered by this project's GPL license.
