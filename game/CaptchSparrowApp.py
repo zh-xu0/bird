@@ -2,17 +2,29 @@ from __future__ import annotations
 
 import argparse
 import random
+import sys
 from pathlib import Path
 
 try:
     import tkinter as tk
     from tkinter import messagebox
 except ImportError as exc:
-    raise SystemExit(
-        "Tkinter could not load. On Arch/CachyOS install it with:\n"
-        "  sudo pacman -S tk\n"
-        f"({exc})"
-    ) from exc
+    if sys.platform == "win32":
+        hint = (
+            "Tkinter ships with the official python.org Windows installer; "
+            "re-run the installer and enable 'tcl/tk and IDLE'."
+        )
+    elif sys.platform == "darwin":
+        hint = (
+            "Install Tk support, e.g. 'brew install python-tk', "
+            "or use the python.org installer."
+        )
+    else:
+        hint = (
+            "On Arch/CachyOS install it with 'sudo pacman -S tk'; "
+            "on Debian/Ubuntu use 'sudo apt install python3-tk'."
+        )
+    raise SystemExit(f"Tkinter could not load. {hint}\n({exc})") from exc
 
 from PIL import Image, ImageOps, ImageTk
 

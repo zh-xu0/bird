@@ -49,7 +49,8 @@ def _load_model():
     except ImportError as exc:
         raise RuntimeError(
             "The SVM requires OpenCV, scikit-learn and joblib. Install "
-            "requirements.txt and run the game with ./run_game.sh."
+            "requirements.txt and run the game with run_game.sh "
+            "(Linux/macOS) or run_game.bat (Windows)."
         ) from exc
 
     _MODEL = joblib.load(MODEL_PATH)
@@ -66,7 +67,16 @@ def _read_source_image(zip_file, is_zip: bool, image_ref: str):
         with zip_file.open(image_ref) as handle:
             data = np.frombuffer(handle.read(), dtype=np.uint8)
         return cv2.imdecode(data, cv2.IMREAD_COLOR)
-    return cv2.imread(str(image_ref))
+
+    # Read through Python's open() instead of cv2.imread(): imread cannot open
+    # paths with non-ASCII characters (e.g. a Windows user profile) and
+    # silently returns None there.
+    try:
+        with open(image_ref, "rb") as handle:
+            data = np.frombuffer(handle.read(), dtype=np.uint8)
+    except OSError:
+        return None
+    return cv2.imdecode(data, cv2.IMREAD_COLOR)
 
 
 def solve_with_model(

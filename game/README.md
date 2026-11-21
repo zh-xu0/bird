@@ -12,13 +12,21 @@ as the requested bird in green.
 
 ## Run
 
-From the repository root, create the environment once:
+The game runs on Linux, macOS and Windows (Linux is the platform it is tested
+on; the Windows launcher mirrors the shell script). Create the environment once
+from the repository root, then use the launcher for your platform. Virtual
+environments are not portable between operating systems, so create a fresh
+`.venv` on each machine rather than copying one across.
+
+### Linux / macOS
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 sudo pacman -S tk        # Arch/CachyOS: Tkinter system package
+# Debian/Ubuntu:  sudo apt install python3-tk
+# macOS (Homebrew Python):  brew install python-tk
 ```
 
 Then run:
@@ -34,9 +42,40 @@ cd game
 ./run_game.sh
 ```
 
-`run_game.sh` uses `.venv/bin/python` from the repository root if it exists.
-If you prefer to activate the environment yourself, `python CaptchSparrowApp.py`
-also works after `source .venv/bin/activate`.
+### Windows
+
+In PowerShell or Command Prompt, from the repository root:
+
+```bat
+py -3 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Tkinter is bundled with the official python.org Windows installer — just make
+sure **tcl/tk and IDLE** is checked during installation, no extra package is
+needed.
+
+Then run:
+
+```bat
+game\run_game.bat
+```
+
+or:
+
+```bat
+cd game
+run_game.bat
+```
+
+You can also double-click `run_game.bat` in Explorer. If you use Git Bash, the
+regular `./run_game.sh` works as well: it detects the Windows
+`.venv\Scripts\python.exe` layout.
+
+`run_game.sh` / `run_game.bat` use the `.venv` at the repository root if it
+exists. If you prefer to activate the environment yourself,
+`python CaptchSparrowApp.py` also works after activation.
 
 ## Dataset options
 
@@ -51,7 +90,13 @@ To use the full dataset zip (excluded from the repository because it is about
 ./run_game.sh --dataset birds_dataset.zip
 ```
 
-Other options:
+On Windows, use `run_game.bat` instead:
+
+```bat
+run_game.bat --dataset birds_dataset.zip
+```
+
+Other options (the same arguments work with either launcher):
 
 ```bash
 # Use the training split instead (the model has seen these images)
@@ -68,6 +113,7 @@ Other options:
 | `CaptchaSparrow.py` | Builds the grid, chooses the target bird and returns its true positions |
 | `CaptchSparrowApp.py` | Tkinter UI, tile selection, three Verify attempts and the Hint button |
 | `ModelSolver.py` | Loads `../results/models/best_model.joblib` and predicts each tile for the requested bird |
+| `run_game.sh` / `run_game.bat` | Launchers for Linux/macOS and Windows |
 | `demo_dataset/test/` | Small demo dataset (10 images per species) |
 | `bird_samples/` | Example photo of each bird shown in the blue header |
 | `captcha_grid.png` | Example generated grid |

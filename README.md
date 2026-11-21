@@ -49,7 +49,8 @@ BIRD/
 │   ├── CaptchaSparrow.py      # captcha grid generator
 │   ├── CaptchSparrowApp.py    # Tkinter UI, 3 attempts, Hint button
 │   ├── ModelSolver.py         # SVM inference for the Hint button
-│   ├── run_game.sh
+│   ├── run_game.sh            # launcher for Linux/macOS
+│   ├── run_game.bat           # launcher for Windows
 │   ├── demo_dataset/test/     # 10 demo images per species
 │   ├── bird_samples/          # header reference photo per species
 │   └── README.md
@@ -95,7 +96,10 @@ For the full game, place `birds_dataset.zip` in `game/` and pass it with
 
 ## Setup
 
-Tested with Python 3.14 on Linux.
+Tested with Python 3.14 on Linux; the launchers and setup below also cover
+Windows.
+
+Linux/macOS:
 
 ```bash
 python3 -m venv .venv
@@ -106,7 +110,20 @@ pip install -r requirements.txt
 # Arch/CachyOS:
 sudo pacman -S tk
 # Debian/Ubuntu: sudo apt install python3-tk
+# macOS (Homebrew Python): brew install python-tk
 ```
+
+Windows (PowerShell or Command Prompt):
+
+```bat
+py -3 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Tkinter is bundled with the official python.org Windows installer (enable
+**tcl/tk and IDLE**). Virtual environments are OS-specific, so create a fresh
+`.venv` on each platform instead of copying one across.
 
 ## Train and evaluate
 
@@ -143,8 +160,15 @@ tiles in green.
 ./game/run_game.sh
 ```
 
-It uses the included demo dataset by default, so it runs from a fresh clone.
-See [game/README.md](game/README.md) for the full-dataset options.
+On Windows:
+
+```bat
+game\run_game.bat
+```
+
+Both launchers use the included demo dataset by default, so the game runs from
+a fresh clone. See [game/README.md](game/README.md) for the full-dataset
+options.
 
 ## Method summary
 
