@@ -4,22 +4,22 @@
 The launcher works with whichever Python runs it:
 
 * If that interpreter has the game dependencies, the game starts immediately.
-* If it does not, and the repository has a ``.venv``, launch.py re-executes
+* If it does not, and the repository has a ``.venv``, game_launch.py re-executes
   itself with the venv's Python automatically. No activation step is needed.
 * If there is no usable venv, it prints setup instructions.
 
 Usage (from the repository root):
-    python launch.py
-    python3 launch.py
-    python launch.py --dataset birds_dataset.zip
-    python launch.py --no-venv
+    python game_launch.py
+    python3 game_launch.py
+    python game_launch.py --dataset birds_dataset.zip
+    python game_launch.py --no-venv
 
 ``--no-venv`` ignores the project virtual environment and uses the interpreter
-running launch.py. All other arguments are passed to
+running game_launch.py. All other arguments are passed to
 ``game/CaptchSparrowApp.py`` (``--dataset``, ``--split``).
 
 Set ``BIRD_PYTHON`` to use a specific interpreter, for example:
-    BIRD_PYTHON=/path/to/python python launch.py
+    BIRD_PYTHON=/path/to/python python game_launch.py
 """
 
 from __future__ import annotations
@@ -106,7 +106,7 @@ def _print_missing(missing: list[str]) -> None:
     python = sys.executable
     print("The game is missing required Python packages:\n")
     print("  " + ", ".join(missing) + "\n")
-    print("Usage: python launch.py [--dataset PATH] [--split {test,train}] [--no-venv]\n")
+    print("Usage: python game_launch.py [--dataset PATH] [--split {test,train}] [--no-venv]\n")
     print("Option 1 - virtual environment (recommended):")
     if os.name == "nt":
         print('  py -3 -m venv .venv')
@@ -115,10 +115,10 @@ def _print_missing(missing: list[str]) -> None:
         print("  python3 -m venv .venv")
         print("  source .venv/bin/activate")
     print(f'  python -m pip install -r "{requirements}"')
-    print("  python launch.py\n")
+    print("  python game_launch.py\n")
     print("Option 2 - install into the Python you are using (no venv):")
     print(f'  "{python}" -m pip install -r "{requirements}"')
-    print(f'  "{python}" launch.py --no-venv\n')
+    print(f'  "{python}" game_launch.py --no-venv\n')
 
     if "tkinter" in missing:
         print("Tkinter is a system package on Linux:")

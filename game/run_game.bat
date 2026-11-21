@@ -1,10 +1,10 @@
 @echo off
-rem Optional convenience wrapper. The unified launcher is ..\launch.py, which
+rem Optional convenience wrapper. The unified launcher is ..\game_launch.py, which
 rem works on Windows, Linux and macOS and selects the project .venv (or the
 rem current Python) automatically.
 setlocal
 
-set "LAUNCHER=%~dp0..\launch.py"
+set "LAUNCHER=%~dp0..\game_launch.py"
 
 where py >nul 2>nul
 if %ERRORLEVEL%==0 (

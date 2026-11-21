@@ -15,7 +15,7 @@ responsive.
 ## Run
 
 The game runs on Linux, macOS and Windows. Install the dependencies once, then
-use the unified `launch.py` from the repository root. The launcher works with
+use the unified `game_launch.py` from the repository root. The launcher works with
 either a virtual environment or a plain Python installation.
 
 ### Option A — virtual environment (recommended, default)
@@ -43,7 +43,7 @@ Tkinter is bundled with the official python.org Windows installer — make sure
 **tcl/tk and IDLE** is checked. Virtual environments are not portable between
 operating systems, so create a fresh `.venv` on each machine.
 
-Activation is optional afterwards: `launch.py` finds `.venv` automatically.
+Activation is optional afterwards: `game_launch.py` finds `.venv` automatically.
 
 ### Option B — no virtual environment
 
@@ -72,21 +72,21 @@ distro's packages.
 From the repository root:
 
 ```bash
-python launch.py          # Linux / macOS
-py launch.py              # Windows
+python game_launch.py          # Linux / macOS
+py game_launch.py              # Windows
 ```
 
-`launch.py` uses the project `.venv` when it exists; otherwise it uses the
+`game_launch.py` uses the project `.venv` when it exists; otherwise it uses the
 interpreter you invoked. Add `--no-venv` to ignore `.venv` and use the current
 interpreter:
 
 ```bash
-python launch.py --no-venv
+python game_launch.py --no-venv
 ```
 
 Set `BIRD_PYTHON=/path/to/python` to choose a specific interpreter.
 
-The old launchers still work as thin convenience wrappers around `launch.py`:
+The old launchers still work as thin convenience wrappers around `game_launch.py`:
 
 ```bash
 ./game/run_game.sh        # Linux / macOS
@@ -109,21 +109,21 @@ To use the full dataset zip (excluded from the repository because it is about
 repository root:
 
 ```bash
-python launch.py --dataset game/birds_dataset.zip
+python game_launch.py --dataset game/birds_dataset.zip
 ```
 
-On Windows, use `py launch.py` instead. Other options (the same arguments work
+On Windows, use `py game_launch.py` instead. Other options (the same arguments work
 with the wrapper scripts too):
 
 ```bash
 # Use the training split instead (the model has seen these images)
-python launch.py --dataset game/birds_dataset.zip --split train
+python game_launch.py --dataset game/birds_dataset.zip --split train
 
 # Use an extracted dataset folder
-python launch.py --dataset dataset/test
+python game_launch.py --dataset dataset/test
 
-# Ignore the project .venv and use the Python running launch.py
-python launch.py --no-venv
+# Ignore the project .venv and use the Python running game_launch.py
+python game_launch.py --no-venv
 ```
 
 ## Files
@@ -133,8 +133,8 @@ python launch.py --no-venv
 | `CaptchaSparrow.py` | Builds the grid, chooses the target bird and returns its true positions |
 | `CaptchSparrowApp.py` | Tkinter UI, tile selection, three Verify attempts and the Solve button |
 | `ModelSolver.py` | Loads the EfficientNet-B0 backbone and `../results/models/best_model.joblib`, embeds each tile and predicts the requested bird |
-| `../launch.py` | Unified launcher for Linux, macOS and Windows; auto-detects `.venv` or uses the current Python |
-| `run_game.sh` / `run_game.bat` | Optional convenience wrappers around `launch.py` |
+| `../game_launch.py` | Unified launcher for Linux, macOS and Windows; auto-detects `.venv` or uses the current Python |
+| `run_game.sh` / `run_game.bat` | Optional convenience wrappers around `game_launch.py` |
 | `demo_dataset/test/` | Small demo dataset (10 images per species) |
 | `bird_samples/` | Example photo of each bird shown in the blue header |
 | `captcha_grid.png` | Example generated grid |
