@@ -42,6 +42,7 @@ classification report, and figures are in [`results/`](results/).
 ```text
 BIRD/
 ├── classification_model.py    # CNN embeddings, SVM training, CV, prediction
+├── demo.mp4                   # a demo of our project    
 ├── requirements.txt
 ├── README.md
 ├── CREDITS.md                 # model/data/software attribution and licenses
@@ -64,7 +65,10 @@ BIRD/
 │   ├── bird_samples/          # header reference photo per species
 │   └── README.md
 └── docs/
-    └── SparrowDetector_ProjectProposal.pdf
+    └── project_proposal.pdf
+    └── project_report.pdf
+    └── slides.pdf
+    
 ```
 
 `docs/SparrowDetector_ProjectProposal.pdf` is the original proposal, kept for
